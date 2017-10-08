@@ -1,0 +1,5 @@
+notARealPass
+password
+nulleando
+dropdatabase
+xkcd1234
