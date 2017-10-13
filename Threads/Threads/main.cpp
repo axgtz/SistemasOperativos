@@ -4,15 +4,16 @@
 //  Created by Alex Gutz on 09/5/17. A01019608
 //  Copyright © 2017 Alejandro Gutierrez. All rights reserved.
 // "passwd2017" es "8efad6deb6289843a8b8c446e2737709"
-/*#include <iostream>
+#include <iostream>
 #include <pthread.h>
 #include <string>
 #include <fstream>
-#include "md5.h"
+#include "md5.cpp"
 
 #define NUM_THREADS 5
 
 using namespace std;
+
 string palabraABuscar;
 
 void *BuscaArchivo(void *threadid){
@@ -27,7 +28,9 @@ void *BuscaArchivo(void *threadid){
     
     while (!feof(fichero)) {
         fgets(linea, sizeof(linea), fichero);
-        
+        if(md5(palabraABuscar) == md5(linea)){
+            cout << "Se encontro la clave \""<<palabraABuscar << "\" en la thread numero: " << tid << "\n";
+        }
     }
     //Imprimir que no lo encontro
     cout << "No se encontro la clave \"passwd2017\" en la thread numero: " << tid << "\n";
@@ -49,32 +52,7 @@ int main(int argc, const char * argv[]) {
         }
         
     }
+    cout << md5(palabraABuscar)  << endl;
     pthread_exit(NULL);
     return 0;
-}*/
-
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#define N 5
-
-void *worker_thread(void *arg){
-    printf("This is worker_thread #%ld\n", (long)arg);
-    pthread_exit(NULL);
-}
-
-int main(){
-    pthread_t my_thread[N];
-    
-    long id;
-    for(id = 1; id <= N; id++) {
-        int ret =  pthread_create(&my_thread[id], NULL, &worker_thread, (void*)id);
-        if(ret != 0) {
-            printf("Error: pthread_create() failed\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    pthread_exit(NULL);
 }
