@@ -10,7 +10,7 @@
 #include "md5.cpp"
 
 //#define ELEMS 1000000 //Limite de palabras a generar
-#define NUM_THREADS 2
+#define NUM_THREADS 4
 
 using namespace std;
 
