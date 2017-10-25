@@ -64,12 +64,4 @@ int main()
 }
 
 
-length = 1
-stringlength = 1
-i = 0
-s = ""
-append = 0
-
-
-
 

@@ -26,9 +26,11 @@ char Alphabet[69] = {'0','1','2','3','4','5','6','7','8','9','@','#','$','%','^'
 
 void Generate(unsigned int length,string s){
 	if(length == 0){//cuando llegue a length
+		pthread_mutex_lock(&el_mutex); /* obtiene acceso exclusivo al búfer */
+		while (bufer[0] != NULL) pthread_cond_wait(&condc, &el_mutex);
 		//cout << s << "\n";
 		bufer = s;
-		pthread_cond_signal(&condc);
+		pthread_cond_signal(&condc); /* despierta al consumidor */
 		pthread_mutex_unlock(&el_mutex);
 		return;
 	}
@@ -42,8 +44,6 @@ void Generate(unsigned int length,string s){
 void *productor(void *ptr) /* produce datos */{
 	cout << "prod" <<"\n";
 
-	pthread_mutex_lock(&el_mutex); /* obtiene acceso exclusivo al búfer */
-	while (bufer[0] != NULL) pthread_cond_wait(&condc, &el_mutex);
 	while(1){
 		Generate(stringlength,"");
 		stringlength++;
@@ -54,10 +54,10 @@ void *productor(void *ptr) /* produce datos */{
 	pthread_exit(0);
 }
 
-void *consumidor(void *ptr){
-	cout << "con" <<"\n";
+void *consumidor(void *ptr) /* consume datos */{
 	pthread_mutex_lock(&el_mutex); /* obtiene acceso exclusivo al búfer */
 	while (bufer[0] == NULL) pthread_cond_wait(&condc, &el_mutex);
+
 	if(md5(bufer) == hashABuscar){
 		cout << "Se encontro: " << bufer << "\n";
 		pthread_cond_signal(&condp); /* despierta al productor */
@@ -73,15 +73,29 @@ void *consumidor(void *ptr){
 
 int main(){
 	hashABuscar = "32390fa731a71f4cdcf6b76a05334545";
-	pthread_t pro, con;
+	
+	pthread_t threads[NUM_THREADS];
+	
 	pthread_mutex_init(&el_mutex, 0);
 	pthread_cond_init(&condc, 0);
 	pthread_cond_init(&condp, 0);
-	pthread_create(&con, NULL, consumidor, NULL);
-	pthread_create(&pro, NULL, productor, NULL);
+	
+	int rc;
+	long i;
+	for(i = 0; i< NUM_THREADS;i++){
+		cout << "Creating thread num" << i << "\n";
+		if(i == 0){
+			rc = pthread_create(&threads[i], NULL, productor, 0);
+		}else if(i == 1 ){
+			rc = pthread_create(&threads[i], NULL, consumidor, 0);
+		}else{
+			cout << "Error unable to create thread" << rc << "\n";
+			return 0;
+		}
+	}
 
-	pthread_join(pro, 0);
-	pthread_join(con, 0);
+	//pthread_join(pro, 0);
+	//pthread_join(con, 0);
 	 
 	pthread_cond_destroy(&condc);
 	pthread_cond_destroy(&condp);
