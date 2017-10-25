@@ -47,19 +47,29 @@ void Generate(unsigned int length, std::string s)
 }
 
 void Crack()
-{int i = 0;
-    static unsigned int stringlength = 1;
-
-    while(i != 3){
+{
+    while(1){
         // Keep growing till I get it right
-        std::cout << stringlength << "\n";
-        i = stringlength++;
-        
+        static unsigned int stringlength = 1;
+        Generate(stringlength, "");
+        stringlength++;
     }
 }
 
 int main()
 {
+    std::cerr << "Attempting to crack...";
     Crack();
     return 0;
 }
+
+
+length = 1
+stringlength = 1
+i = 0
+s = ""
+append = 0
+
+
+
+

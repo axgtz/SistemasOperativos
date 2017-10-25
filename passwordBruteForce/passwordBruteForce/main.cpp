@@ -19,52 +19,32 @@ pthread_cond_t condc,condp;
 string bufer; /* búfer utilizado entre productor y consumidor */
 string hashABuscar;
 
-unsigned int length;//Longitud de palabra a generar
-unsigned int stringlLength;
-unsigned int indiceAlfabeto;
-//bool inicio;
+static unsigned int stringlength = 1;
+//unsigned int indiceAlfabeto;
 
 char Alphabet[69] = {'0','1','2','3','4','5','6','7','8','9','@','#','$','%','^','&','*','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
-//--------------PassGen------------
-//"0123456789""!@#$%^&*""ABCDEFGHIJKLMNOPQRSTUVWXYZ""abcdefghijklmnopqrstuvwxyz"
-/*bool generator(bool inicio){
-	while(inicio){
-		
-	}
-	
-	return false;
-}*/
 
-void Generate(string s){
-	if(length == 0){ // when length has been reached
-		cout << s << "\n"; // print it out
+void Generate(unsigned int length,string s){
+	if(length == 0){//cuando llegue a length
+		std::cout << s << "\n";
+		bufer = s;
 		return;
 	}
-	for(unsigned int i = 0; i < 69; i++){
+	unsigned int i;
+	for(i = 0; i < 69; i++){
 		string appended = s + Alphabet[i];
-		length--;
-		Generate(appended);
-	}
-}
-void Crack(){
-	while (1) {
-		stringlLength = 1;
-		Generate("");
-		length++;
+		Generate(length-1,appended);
 	}
 }
 
 void *productor(void *ptr) /* produce datos */{
 	pthread_mutex_lock(&el_mutex); /* obtiene acceso exclusivo al búfer */
 	while (bufer[0] != NULL) pthread_cond_wait(&condc, &el_mutex);
-	//inicio = true;
-	//generator(inicio);
-	if(indiceAlfabeto>=69){
-		indiceAlfabeto=0;
-		length++;
+	while(1){
+		Generate(stringlength,"");
+		stringlength++;
 	}
 	
-	//bufer[0] = ' ';
 	pthread_cond_signal(&condc); /* despierta al consumidor */
 	pthread_mutex_unlock(&el_mutex); /* libera el acceso al búfer */
 	pthread_exit(0);
@@ -73,11 +53,12 @@ void *productor(void *ptr) /* produce datos */{
 void *consumidor(void *ptr) /* consume datos */{
 	pthread_mutex_lock(&el_mutex); /* obtiene acceso exclusivo al búfer */
 	while (bufer[0] == NULL) pthread_cond_wait(&condc, &el_mutex);
-	string s = bufer;
-	if(md5(s) == hashABuscar){
-		cout << "Se encontro: " << s << "\n";
+
+	if(md5(bufer) == hashABuscar){
+		cout << "Se encontro: " << bufer << "\n";
+		pthread_cond_signal(&condp); /* despierta al productor */
+		pthread_mutex_unlock(&el_mutex); /* libera el acceso al búfer */
 		pthread_exit(0);
-		return 0;
 	}
 	bufer[0] = NULL;
 	//Aqui se comparan las palabras
@@ -88,18 +69,18 @@ void *consumidor(void *ptr) /* consume datos */{
 
 int main(){
 	hashABuscar = "32390fa731a71f4cdcf6b76a05334545";
-	Crack();
-	/*pthread_t pro, con;
+	pthread_t pro, con;
 	pthread_mutex_init(&el_mutex, 0);
 	pthread_cond_init(&condc, 0);
 	pthread_cond_init(&condp, 0);
-	pthread_create(&con, 0, consumidor, 0);
-	pthread_create(&pro, 0, productor, 0);
-	//pthread_join(pro, 0);
-	//pthread_join(con, 0);
+	pthread_create(&con, NULL, consumidor, NULL);
+	pthread_create(&pro, NULL, productor, NULL);
+
+	pthread_join(pro, 0);
+	pthread_join(con, 0);
 	 
 	pthread_cond_destroy(&condc);
 	pthread_cond_destroy(&condp);
-	pthread_mutex_destroy(&el_mutex);*/
+	pthread_mutex_destroy(&el_mutex);
 	return 0;
 }

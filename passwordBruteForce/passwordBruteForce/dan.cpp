@@ -33,13 +33,10 @@ void passGeneratorRec(char alphabet[], char password[], int index, int size) {
             pthread_cond_signal(&condc);
             pthread_mutex_unlock(&el_mutex);
             
-        }
-        else {
+        }else {
             passGeneratorRec(alphabet, password, index + 1, size);
-            
         }
     }
-    
 }
 
 void passGenerator(int size_min, int size_max) {
@@ -53,18 +50,13 @@ void passGenerator(int size_min, int size_max) {
 
 void *producer(void *ptr) {
     passGenerator(MIN, MAX);
+    cout << "FAKE" << endl;
     if (md5(buffer) == searched_hash) {
         cout << endl << "Password found: " << buffer << endl;
-        
-    }
-    
-    else{
+    }else{
         cout << endl << "Not found" << endl;
-        
     }
     buffer[0] = ' ';
-    
-    
     pthread_exit(0);
 }
 
