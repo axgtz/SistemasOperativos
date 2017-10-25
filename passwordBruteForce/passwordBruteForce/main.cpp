@@ -26,8 +26,10 @@ char Alphabet[69] = {'0','1','2','3','4','5','6','7','8','9','@','#','$','%','^'
 
 void Generate(unsigned int length,string s){
 	if(length == 0){//cuando llegue a length
-		std::cout << s << "\n";
+		//cout << s << "\n";
 		bufer = s;
+		pthread_cond_signal(&condc);
+		pthread_mutex_unlock(&el_mutex);
 		return;
 	}
 	unsigned int i;
@@ -38,6 +40,8 @@ void Generate(unsigned int length,string s){
 }
 
 void *productor(void *ptr) /* produce datos */{
+	cout << "prod" <<"\n";
+
 	pthread_mutex_lock(&el_mutex); /* obtiene acceso exclusivo al búfer */
 	while (bufer[0] != NULL) pthread_cond_wait(&condc, &el_mutex);
 	while(1){
@@ -50,10 +54,10 @@ void *productor(void *ptr) /* produce datos */{
 	pthread_exit(0);
 }
 
-void *consumidor(void *ptr) /* consume datos */{
+void *consumidor(void *ptr){
+	cout << "con" <<"\n";
 	pthread_mutex_lock(&el_mutex); /* obtiene acceso exclusivo al búfer */
 	while (bufer[0] == NULL) pthread_cond_wait(&condc, &el_mutex);
-
 	if(md5(bufer) == hashABuscar){
 		cout << "Se encontro: " << bufer << "\n";
 		pthread_cond_signal(&condp); /* despierta al productor */
